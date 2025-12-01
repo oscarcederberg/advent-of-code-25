@@ -11,18 +11,19 @@ fn part_1(input: &str) -> usize {
 
     let mut step: i32 = 50;
     let mut zeroes: usize = 0;
+
     input
         .lines()
         .map(|line| {
             let mut chars = line.chars();
-            match (chars.next().unwrap()) {
+            match chars.next().unwrap() {
                 'L' => Left(chars.as_str().parse().unwrap()),
                 'R' => Right(chars.as_str().parse().unwrap()),
                 other => unreachable!("not L or R: {other}"),
             }
         })
         .for_each(|instr| {
-            match (instr) {
+            match instr {
                 Left(steps) => step = (step - steps).rem_euclid(100),
                 Right(steps) => step = (step + steps).rem_euclid(100),
             };
@@ -30,6 +31,7 @@ fn part_1(input: &str) -> usize {
                 zeroes += 1;
             }
         });
+
     zeroes
 }
 
@@ -38,36 +40,47 @@ fn part_2(input: &str) -> usize {
 
     let mut step: i32 = 50;
     let mut zeroes: usize = 0;
+
     input
         .lines()
         .map(|line| {
             let mut chars = line.chars();
-            match (chars.next().unwrap()) {
+            match chars.next().unwrap() {
                 'L' => Left(chars.as_str().parse().unwrap()),
                 'R' => Right(chars.as_str().parse().unwrap()),
                 other => unreachable!("not L or R: {other}"),
             }
         })
         .for_each(|instr| {
-            match (instr) {
-                Left(steps) => {
-                    for i in 0..steps {
-                        step = (step - 1).rem_euclid(100);
-                        if step == 0 {
-                            zeroes += 1;
-                        }
+            let previous = step;
+            match instr {
+                Left(mut steps) => {
+                    if steps > 100 {
+                        zeroes += (steps / 100) as usize;
+                        steps = steps.rem_euclid(100);
+                    }
+
+                    step = (step - steps).rem_euclid(100);
+
+                    if previous != 0 && (step > previous || step == 0) {
+                        zeroes += 1;
                     }
                 }
-                Right(steps) => {
-                    for i in 0..steps {
-                        step = (step + 1).rem_euclid(100);
-                        if step == 0 {
-                            zeroes += 1;
-                        }
+                Right(mut steps) => {
+                    if steps > 100 {
+                        zeroes += (steps / 100) as usize;
+                        steps = steps.rem_euclid(100);
+                    }
+
+                    step = (step + steps).rem_euclid(100);
+
+                    if previous != 0 && (step < previous || step == 0) {
+                        zeroes += 1;
                     }
                 }
             };
         });
+
     zeroes
 }
 
