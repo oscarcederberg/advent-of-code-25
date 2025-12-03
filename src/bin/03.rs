@@ -9,23 +9,25 @@ fn part_1(input: &str) -> usize {
                 .map(|char| char.to_digit(10).unwrap())
                 .collect()
         })
-        .fold(0, |sum, bank: Vec<u32>| {
-            let (mut index, mut max_1) = (0, 0);
-            for (i, battery) in bank.iter().enumerate() {
-                if *battery > max_1 {
-                    (index, max_1) = (i, *battery);
-                }
-            }
+        .map(|bank: Vec<u32>| {
+            let (index, max_1) = bank
+                .iter()
+                .enumerate()
+                .rev() // NOTE: max_by_key() returns last max, rev() to get first.
+                .max_by_key(|&(_, value)| value)
+                .unwrap();
 
             let value = if index == bank.len() - 1 {
-                let max_2 = bank[..bank.len() - 1].iter().max().unwrap();
+                let max_2 = bank.iter().take(bank.len() - 1).max().unwrap();
                 max_2 * 10 + max_1
             } else {
                 let max_2 = bank.iter().skip(index + 1).max().unwrap();
-                max_1 * 10 + *max_2
+                max_1 * 10 + max_2
             };
-            sum + value as usize
+
+            value as usize
         })
+        .sum()
 }
 
 fn part_2(input: &str) -> usize {
@@ -36,7 +38,23 @@ fn part_2(input: &str) -> usize {
                 .map(|char| char.to_digit(10).unwrap() as u32)
                 .collect()
         })
-        .fold(0, |sum, mut bank: Vec<u32>| sum + value)
+        .map(|bank: Vec<u32>| {
+            let (mut skip, mut value) = (0, 0);
+            for take in (bank.len() - 11)..=bank.len() {
+                let (index, max) = bank
+                    .iter()
+                    .enumerate()
+                    .take(take)
+                    .skip(skip)
+                    .rev() // NOTE: max_by_key() returns last max, rev() to get first.
+                    .max_by_key(|&(_, value)| value)
+                    .unwrap();
+                (skip, value) = (index + 1, value * 10 + *max as usize);
+            }
+
+            value
+        })
+        .sum()
 }
 
 fn main() {
