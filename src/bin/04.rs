@@ -1,49 +1,57 @@
 const TEST: &'static str = include_str!("../../input/04/test.txt");
 const INPUT: &'static str = include_str!("../../input/04/input.txt");
 
+const ADJACENT_OFFSETS: [(isize, isize); 8] = [
+    (0, -1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+    (0, 1),
+    (-1, 1),
+    (-1, 0),
+    (-1, -1),
+];
+
 fn part_1(input: &str) -> usize {
-    let grid: Vec<Vec<(usize, usize, bool)>> = input
+    let grid: Vec<Vec<bool>> = input
         .lines()
-        .enumerate()
-        .map(|(y, line)| {
+        .map(|line| {
             line.chars()
-                .enumerate()
-                .map(|(x, char)| match char {
-                    '@' => (x, y, true),
-                    '.' => (x, y, false),
+                .map(|char| match char {
+                    '@' => true,
+                    '.' => false,
                     other => unreachable!("got unexpected char: {other}"),
                 })
                 .collect()
         })
         .collect();
+
     let (rows, cols) = (grid.len(), grid[0].len());
 
     grid.iter()
-        .map(|row| {
+        .enumerate()
+        .map(|(y, row)| {
             row.iter()
-                .filter(|&(_, _, is_roll)| *is_roll)
-                .map(|&(x, y, _)| {
-                    [
-                        (0, -1),
-                        (1, -1),
-                        (1, 0),
-                        (1, 1),
-                        (0, 1),
-                        (-1, 1),
-                        (-1, 0),
-                        (-1, -1),
-                    ]
-                    .iter()
-                    .map(|&(offset_x, offset_y)| {
-                        let (x, y): (isize, isize) = (x as isize + offset_x, y as isize + offset_y);
-                        if x < 0 || x >= cols as isize || y < 0 || y >= rows as isize {
-                            false
-                        } else {
-                            grid[y as usize][x as usize].2
-                        }
-                    })
-                    .filter(|&x| x)
-                    .count()
+                .enumerate()
+                .filter(|&(_, &is_roll)| is_roll)
+                .map(|(x, _)| {
+                    ADJACENT_OFFSETS
+                        .iter()
+                        .map(|&(offset_x, offset_y)| {
+                            let (neighbor_x, neighbor_y) =
+                                (x as isize + offset_x, y as isize + offset_y);
+                            if neighbor_x < 0
+                                || neighbor_x >= cols as isize
+                                || neighbor_y < 0
+                                || neighbor_y >= rows as isize
+                            {
+                                false
+                            } else {
+                                grid[neighbor_y as usize][neighbor_x as usize]
+                            }
+                        })
+                        .filter(|&x| x)
+                        .count()
                 })
                 .filter(|&neighbours| neighbours < 4)
                 .count()
@@ -52,57 +60,50 @@ fn part_1(input: &str) -> usize {
 }
 
 fn part_2(input: &str) -> usize {
-    let mut grid: Vec<Vec<(usize, usize, bool)>> = input
+    let mut grid: Vec<Vec<bool>> = input
         .lines()
-        .enumerate()
-        .map(|(y, line)| {
+        .map(|line| {
             line.chars()
-                .enumerate()
-                .map(|(x, char)| match char {
-                    '@' => (x, y, true),
-                    '.' => (x, y, false),
+                .map(|char| match char {
+                    '@' => true,
+                    '.' => false,
                     other => unreachable!("got unexpected char: {other}"),
                 })
                 .collect()
         })
         .collect();
+
     let (rows, cols) = (grid.len(), grid[0].len());
     let mut total_removed = 0;
 
     loop {
-        let removed: Vec<(usize, usize)> = grid
+        let removed_rolls: Vec<(usize, usize)> = grid
             .clone()
             .iter()
-            .flat_map(|row| {
+            .enumerate()
+            .flat_map(|(y, row)| {
                 row.iter()
-                    .filter(|&(_, _, is_roll)| *is_roll)
-                    .map(|&(x, y, _)| {
-                        (
-                            x,
-                            y,
-                            [
-                                (0, -1),
-                                (1, -1),
-                                (1, 0),
-                                (1, 1),
-                                (0, 1),
-                                (-1, 1),
-                                (-1, 0),
-                                (-1, -1),
-                            ]
+                    .enumerate()
+                    .filter(|&(_, is_roll)| *is_roll)
+                    .map(|(x, _)| {
+                        let neighbours = ADJACENT_OFFSETS
                             .iter()
                             .map(|&(offset_x, offset_y)| {
-                                let (x, y): (isize, isize) =
+                                let (neighbor_x, neighbor_y) =
                                     (x as isize + offset_x, y as isize + offset_y);
-                                if x < 0 || x >= cols as isize || y < 0 || y >= rows as isize {
+                                if neighbor_x < 0
+                                    || neighbor_x >= cols as isize
+                                    || neighbor_y < 0
+                                    || neighbor_y >= rows as isize
+                                {
                                     false
                                 } else {
-                                    grid[y as usize][x as usize].2
+                                    grid[neighbor_y as usize][neighbor_x as usize]
                                 }
                             })
                             .filter(|&x| x)
-                            .count(),
-                        )
+                            .count();
+                        (x, y, neighbours)
                     })
                     .filter(|&(_, _, neighbours)| neighbours < 4)
                     .map(|(x, y, _)| (x, y))
@@ -110,13 +111,12 @@ fn part_2(input: &str) -> usize {
             })
             .collect();
 
-        removed.iter().for_each(|&(x, y)| grid[y][x].2 = false);
-
-        if removed.is_empty() {
+        if removed_rolls.is_empty() {
             break;
         }
 
-        total_removed += removed.len();
+        removed_rolls.iter().for_each(|&(x, y)| grid[y][x] = false);
+        total_removed += removed_rolls.len();
     }
 
     total_removed
