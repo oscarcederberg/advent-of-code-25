@@ -35,7 +35,7 @@ fn part_2(input: &str) -> usize {
         .lines()
         .map(|bank| {
             bank.chars()
-                .map(|char| char.to_digit(10).unwrap() as u32)
+                .map(|char| char.to_digit(10).unwrap())
                 .collect()
         })
         .map(|bank: Vec<u32>| {
