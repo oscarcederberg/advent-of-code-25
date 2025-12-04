@@ -27,17 +27,15 @@ fn part_2(input: &str) -> usize {
         })
         .filter(|id| {
             let id = id.to_string();
-            (1..id.len())
-                .find(|chunk_len| {
-                    if id.len() % *chunk_len != 0 {
-                        false
-                    } else {
-                        let chunks = id.as_bytes().chunks(*chunk_len).collect::<Vec<&[u8]>>();
-                        let first = chunks.first().unwrap();
-                        chunks.iter().all(|x| x == first)
-                    }
-                })
-                .is_some()
+            (1..id.len()).any(|chunk_len| {
+                if id.len() % chunk_len != 0 {
+                    false
+                } else {
+                    let chunks = id.as_bytes().chunks(chunk_len).collect::<Vec<&[u8]>>();
+                    let first = chunks.first().unwrap();
+                    chunks.iter().all(|x| x == first)
+                }
+            })
         })
         .sum()
 }
