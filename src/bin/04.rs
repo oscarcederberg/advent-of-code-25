@@ -1,5 +1,5 @@
-const TEST: &'static str = include_str!("../../input/04/test.txt");
-const INPUT: &'static str = include_str!("../../input/04/input.txt");
+const TEST: &str = include_str!("../../input/04/test.txt");
+const INPUT: &str = include_str!("../../input/04/input.txt");
 
 const ADJACENT_OFFSETS: [(isize, isize); 8] = [
     (0, -1),

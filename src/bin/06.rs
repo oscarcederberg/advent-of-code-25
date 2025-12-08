@@ -1,5 +1,5 @@
-const TEST: &'static str = include_str!("../../input/06/test.txt");
-const INPUT: &'static str = include_str!("../../input/06/input.txt");
+const TEST: &str = include_str!("../../input/06/test.txt");
+const INPUT: &str = include_str!("../../input/06/input.txt");
 
 pub enum Op {
     Add,

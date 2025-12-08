@@ -1,5 +1,5 @@
-const TEST: &'static str = include_str!("../../input/xx/test.txt");
-const INPUT: &'static str = include_str!("../../input/xx/input.txt");
+const TEST: &str = include_str!("../../input/xx/test.txt");
+const INPUT: &str = include_str!("../../input/xx/input.txt");
 
 fn part_1(input: &str) -> usize {
     0

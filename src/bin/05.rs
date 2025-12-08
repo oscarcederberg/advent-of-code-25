@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-const TEST: &'static str = include_str!("../../input/05/test.txt");
-const INPUT: &'static str = include_str!("../../input/05/input.txt");
+const TEST: &str = include_str!("../../input/05/test.txt");
+const INPUT: &str = include_str!("../../input/05/input.txt");
 
 fn part_1(input: &str) -> usize {
     let (ranges, ingredients) = input.split_once("\n\n").unwrap();

@@ -1,5 +1,5 @@
-const TEST: &'static str = include_str!("../../input/07/test.txt");
-const INPUT: &'static str = include_str!("../../input/07/input.txt");
+const TEST: &str = include_str!("../../input/07/test.txt");
+const INPUT: &str = include_str!("../../input/07/input.txt");
 
 #[derive(Clone)]
 pub enum Cell {

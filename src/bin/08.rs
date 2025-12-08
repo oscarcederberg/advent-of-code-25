@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use itertools::Itertools;
 
-const TEST: &'static str = include_str!("../../input/08/test.txt");
-const INPUT: &'static str = include_str!("../../input/08/input.txt");
+const TEST: &str = include_str!("../../input/08/test.txt");
+const INPUT: &str = include_str!("../../input/08/input.txt");
 
 pub type ID = usize;
 
