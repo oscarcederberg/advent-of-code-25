@@ -1,4 +1,5 @@
 use memoize::memoize;
+use z3::{Optimize, ast::Int};
 
 const TEST: &str = include_str!("../../input/10/test.txt");
 const INPUT: &str = include_str!("../../input/10/input.txt");
@@ -16,9 +17,8 @@ fn solve_lights_req(
     buttons: Vec<Vec<usize>>,
     iter: usize,
 ) -> usize {
-    if goal == current {
-        return iter;
-    } else if iter > 10 {
+    /* TODO: Make this BFS instead of DFS with memoization. */
+    if goal == current || iter > 10 {
         return iter;
     }
 
@@ -33,32 +33,46 @@ fn solve_lights_req(
         .unwrap()
 }
 
-#[memoize]
-fn solve_joltage_req(
-    goal: Vec<usize>,
-    current: Vec<usize>,
-    buttons: Vec<Vec<usize>>,
-    iter: usize,
-) -> usize {
-    if goal == current {
-        return iter;
-    } else if current
+fn solve_joltage_req(goal: Vec<usize>, buttons: Vec<Vec<usize>>) -> usize {
+    let opt = Optimize::new();
+
+    let constants: Vec<(&[usize], Int)> = buttons
         .iter()
         .enumerate()
-        .any(|(index, &joltage)| joltage > goal[index])
-    {
-        return usize::MAX;
+        .map(|(index, button)| {
+            (
+                button.as_slice(),
+                Int::fresh_const(format!("{index}").as_str()),
+            )
+        })
+        .collect();
+
+    for index in 0..goal.len() {
+        let muls: Vec<Int> = constants
+            .iter()
+            .map(|(button, constant)| Int::mul(&[constant, &Int::from_u64(button[index] as u64)]))
+            .collect();
+
+        opt.assert(&Int::add(&muls).eq(Int::from_u64(goal[index] as u64)))
     }
 
-    buttons
-        .iter()
-        .map(|button| {
-            let mut next = current.clone();
-            button.iter().for_each(|&index| next[index] += 1);
-            solve_joltage_req(goal.clone(), next, buttons.clone(), iter + 1)
-        })
-        .min()
-        .unwrap()
+    for constant in constants.iter() {
+        opt.assert(&constant.1.ge(Int::from_u64(0)));
+    }
+
+    let terms: Vec<&Int> = constants.iter().map(|(_, constant)| constant).collect();
+    let objective = Int::add(&terms);
+    opt.minimize(&objective);
+
+    if opt.check(&[]) == z3::SatResult::Sat {
+        let model = opt.get_model().unwrap();
+        constants
+            .iter()
+            .map(|(_, constant)| model.get_const_interp(constant).unwrap().as_u64().unwrap())
+            .sum::<u64>() as usize
+    } else {
+        panic!();
+    }
 }
 
 fn part_1(input: &str) -> usize {
@@ -117,10 +131,11 @@ fn part_2(input: &str) -> usize {
             let buttons = parts[1..parts.len() - 1]
                 .iter()
                 .map(|schematic| {
+                    let mut button: Vec<usize> = vec![0; joltage_req.len()];
                     schematic[1..schematic.len() - 1]
                         .split(',')
-                        .map(|light| light.parse().unwrap())
-                        .collect()
+                        .for_each(|light| button[light.parse::<usize>().unwrap()] += 1);
+                    button
                 })
                 .collect();
             Machine {
@@ -133,14 +148,7 @@ fn part_2(input: &str) -> usize {
 
     machines
         .iter()
-        .map(|machine| {
-            solve_joltage_req(
-                machine.joltage_req.clone(),
-                vec![0; machine.joltage_req.len()],
-                machine.buttons.clone(),
-                0,
-            )
-        })
+        .map(|machine| solve_joltage_req(machine.joltage_req.clone(), machine.buttons.clone()))
         .sum()
 }
 
